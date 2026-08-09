@@ -28,3 +28,17 @@ top of this file is the single source of truth - releases are cut from it by
   `check_logs_ai` helpers (never reimplements parsing).
 - Removed the broken `start.bat` launcher (it referenced a `start.py` that
   never existed).
+- `--init [DIR]` — one-command adoption: scaffolds `errors.txt`,
+  `decisions.txt`, `rules.txt` (with the §7 LESSONS header), and `notes.txt`
+  from built-in templates; never overwrites existing files; runs the offline
+  self-test suite when present.
+- The reasoning commands are now mutually exclusive (`--lessons` / `--review` /
+  `--notes` / `--check` / `--check-commit` / `--init`) — previously two could
+  be passed and one silently won.
+- `chat()` now explicitly re-raises `KeyboardInterrupt` — Ctrl-C always
+  escapes and is never folded into an error string.
+- `_test_logs_ai.py` — 93 tests (+11): `_token_warn` threshold, `--timeout`
+  pass-through, `KeyboardInterrupt` propagation, `--max-entries` truncation,
+  `--apply` through the command path, mutual exclusion, and four `--init`
+  cases (scaffold, no-overwrite, self-test run, failing self-test fails
+  adoption).
