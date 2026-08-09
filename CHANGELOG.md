@@ -22,3 +22,9 @@ top of this file is the single source of truth - releases are cut from it by
 - `.github/workflows/ci.yml` — CI: tests + linter matrix (Ubuntu + Windows,
   Python 3.9/3.11/3.12, offline HTTP-mocked suite), README drift guard, and
   the commit-message gate (AREA marker must name a logged decision).
+- `start.py` — boot briefing: sibling-log health (errors + decisions, if the
+  sibling repos live next door), a 2-second endpoint reachability probe, the
+  command cheat-sheet, and the latest session note. Uses the canonical
+  `check_logs_ai` helpers (never reimplements parsing).
+- Removed the broken `start.bat` launcher (it referenced a `start.py` that
+  never existed).
