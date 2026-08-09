@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# never commit API keys
+.env
+*.key
+OPENAI_API_KEY*
