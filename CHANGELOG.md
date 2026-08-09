@@ -19,3 +19,6 @@ top of this file is the single source of truth - releases are cut from it by
   only (urllib), local-first (Ollama default), prompt-injection guard.
 - `_test_logs_ai.py` — 82 offline tests (HTTP mocked, no network, no key).
 - `_check_readme_count.py` — README test-count drift guard.
+- `.github/workflows/ci.yml` — CI: tests + linter matrix (Ubuntu + Windows,
+  Python 3.9/3.11/3.12, offline HTTP-mocked suite), README drift guard, and
+  the commit-message gate (AREA marker must name a logged decision).
