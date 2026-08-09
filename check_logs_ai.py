@@ -452,11 +452,13 @@ def cmd_check_commit(text, msg_path):
     raw = msg_path.read_text(encoding="utf-8", errors="replace")
     line = ""
     for ln in raw.splitlines():
-        m = re.search(r"(?:AREA|LOG)\s*:", ln, re.IGNORECASE)
-        if m:
-            # everything after the marker, minus a trailing ')' from (AREA: x)
-            line = ln[m.end():].strip().rstrip(")").strip()
-            break  # first marker on the first matching line (matches hooks)
+        marks = list(re.finditer(r"(?:AREA|LOG)\s*:", ln, re.IGNORECASE))
+        if marks:
+            # LAST marker on the FIRST matching line (matches the hooks'
+            # greedy sed and the sibling _extract_area contract), minus a
+            # trailing ')' from (AREA: x)
+            line = ln[marks[-1].end():].strip().rstrip(")").strip()
+            break
     if not line:
         print("commit-gate BLOCKED: no AREA:/LOG: marker in the message")
         return 1

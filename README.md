@@ -100,6 +100,7 @@ default; cloud only if you pass `--base-url https://...` and a key.
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Run `python _test_logs_ai.py` —
-all tests are offline (the HTTP layer is mocked). `python check_logs_ai.py`
-must exit 0 on the repo's own log. README test counts are enforced by a
-drift-guard CI job, so keep them in sync.
+all tests are offline (the HTTP layer is mocked; the suite runs green with
+no network and no API key) — (82, 100% pass expected).
+`python check_logs_ai.py` must exit 0 on the repo's own log. README test
+counts are enforced by a drift-guard CI job, so keep them in sync.
