@@ -1,0 +1,25 @@
+RULES OF ENGAGEMENT
+
+1) READ FIRST
+   Read rules.txt, then the log, then notes.txt at session start (start.py).
+
+2) LOG BEFORE FIXING
+   If something breaks, log it in the error log first, then fix.
+
+3) DECIDE BEFORE YOU CODE
+   At a fork (reversing would cost time, or you considered an alternative),
+   log the decision in decisions.txt first.
+
+4) NEVER REWRITE HISTORY
+   Append-only. Corrections are new entries that point back with SUPERSEDES.
+
+5) THE AREA-MARKER GATE
+   Every commit / PR title carries (AREA: <logged decision>). CI enforces it.
+
+6) LLM DISCIPLINE
+   Dry-run before you send. Never commit an API key. Local-first by default.
+
+## 7) LESSONS LEARNED (proposed drafts)
+========
+   Drafts land here via `--apply`. A human confirms them before they are
+   promoted to the numbered rules above.
