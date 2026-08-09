@@ -16,6 +16,16 @@
   FILES: check_logs_ai.py
   STATUS: LOCKED.
 
+[2026-08-09 13:05] DECISION: build a start.py boot helper and remove the broken start.bat
+  REASON: start.bat referenced start.py which never existed, so the shipped
+  launcher was broken. We considered skipping a start script entirely (the
+  reasoning layer keeps no memory of its own - boot recall is the siblings'
+  job) but a boot briefing still orients a fresh session: sibling-log health,
+  endpoint reachability, and the command cheat-sheet. Removing start.bat beats
+  leaving a dead launcher in the repo.
+  FILES: start.py
+  STATUS: LOCKED.
+
 ================================================================================
 5) TO ADD A NEW ENTRY
 ================================================================================
