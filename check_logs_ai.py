@@ -88,7 +88,11 @@ def load(path):
     return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
-# --- parsers (mirror the sibling formats exactly) ----------------------------
+# --- parsers ---------------------------------------------------------------
+# Option A from the plan review: parsing logic copied from the siblings
+# (agent-error-log v0.7.0 / agent-decision-log v0.4.0) so this repo stays a
+# self-contained single file. # Copied from the siblings - keep in sync if
+# their entry formats change.
 
 def parse_entries(text, kind):
     """Parse an error log (kind='errors') or decision log (kind='decisions').
@@ -310,7 +314,18 @@ def chat(base_url, model, system, user, api_key="",
 
 
 def estimate_tokens(text):
+    # chars/4 heuristic - approximate by design (no tokenizer in stdlib);
+    # used only for the cost-guard warning, never for exact billing.
     return max(1, len(text) // 4)
+
+
+TOKEN_WARN_THRESHOLD = 2000  # cost guard: warn when the prompt estimate exceeds this
+
+
+def _token_warn(tok):
+    if tok > TOKEN_WARN_THRESHOLD:
+        print(f"  WARN: prompt ~{tok} tokens (estimate chars/4) - over {TOKEN_WARN_THRESHOLD};")
+        print(f"        consider --max-entries to trim before sending")
 
 
 # --- rules.txt patching (--apply) ---------------------------------------------
@@ -348,8 +363,10 @@ def cmd_lessons(text, rules_path, args):
     if args.dry_run:
         _print_prompt("LESSONS DRAFT (dry run - nothing sent)", system, user)
         return 0
+    tok = estimate_tokens(user)
     print(f"Distilling {len(clusters)} cluster(s) -> {args.model} @ {args.base_url} "
-          f"(~{estimate_tokens(user)} tokens)...")
+          f"(~{tok} tokens)...")
+    _token_warn(tok)
     content, err = chat(args.base_url, args.model, system, user,
                         args.api_key, args.max_tokens, args.temperature,
                         args.timeout)
@@ -375,8 +392,10 @@ def cmd_review(text, rules_path, args):
     if args.dry_run:
         _print_prompt("REVIEW DRAFT (dry run - nothing sent)", system, user)
         return 0
+    tok = estimate_tokens(user)
     print(f"Analyzing {len(topics)} volatile topic(s) -> {args.model} @ "
-          f"{args.base_url} (~{estimate_tokens(user)} tokens)...")
+          f"{args.base_url} (~{tok} tokens)...")
+    _token_warn(tok)
     content, err = chat(args.base_url, args.model, system, user,
                         args.api_key, args.max_tokens, args.temperature,
                         args.timeout)
@@ -407,8 +426,10 @@ def cmd_notes(decisions_path, errors_path, notes_path, args):
     if args.dry_run:
         _print_prompt("SESSION NOTE DRAFT (dry run - nothing sent)", system, user)
         return 0
+    tok = estimate_tokens(user)
     print(f"Drafting session note -> {args.model} @ {args.base_url} "
-          f"(~{estimate_tokens(user)} tokens)...")
+          f"(~{tok} tokens)...")
+    _token_warn(tok)
     content, err = chat(args.base_url, args.model, system, user,
                         args.api_key, args.max_tokens, args.temperature,
                         args.timeout)
