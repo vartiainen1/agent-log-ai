@@ -3,9 +3,11 @@ the LLM client (HTTP mocked - the suite runs offline with no network and no
 API key), --apply/--append writes, and the commit gate.
 Run: python _test_logs_ai.py"""
 
+import contextlib
 import io
 import json
 import random
+import subprocess
 import sys
 import tempfile
 import unittest.mock as mock
@@ -201,6 +203,16 @@ t("lessons prompt names clusters", "CLUSTER 1" in user_p)
 t("lessons prompt asks for RULE", "RULE" in user_p)
 t("lessons prompt includes AREA text", "payment webhook parser" in user_p)
 
+tr_text = (err_entry("2026-08-01", "shared area")
+           + err_entry("2026-08-02", "shared area")
+           + err_entry("2026-08-03", "shared area"))
+_, u1 = cla.build_lessons_prompt(cla.cluster_entries(cla.parse_entries(tr_text, "errors")),
+                                 max_entries=1)
+_, u3 = cla.build_lessons_prompt(cla.cluster_entries(cla.parse_entries(tr_text, "errors")),
+                                 max_entries=10)
+t("max_entries truncates per-cluster entries",
+  u1.count("AREA:") == 1 and u3.count("AREA:") == 3)
+
 sys_r, user_r = cla.build_review_prompt(topics)
 t("review prompt names topic", "parser.py" in user_r)
 t("review prompt quotes REASON", "file grew" in user_r)
@@ -263,6 +275,29 @@ t("chat: no auth header without key", req.get_header("Authorization") is None)
 t("chat: posts to /chat/completions", "/chat/completions" in req.full_url)
 
 t("estimate_tokens is >= 1", cla.estimate_tokens("") == 1 and cla.estimate_tokens("abcd") == 1)
+
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    cla._token_warn(cla.TOKEN_WARN_THRESHOLD + 1)
+t("token_warn warns over threshold", "WARN" in buf.getvalue())
+buf2 = io.StringIO()
+with contextlib.redirect_stdout(buf2):
+    cla._token_warn(10)
+t("token_warn silent under threshold", buf2.getvalue() == "")
+
+with mock.patch("urllib.request.urlopen") as m:
+    m.return_value = FakeResp({"choices": [{"message": {"content": "ok"}}]})
+    cla.chat("http://x/v1", "m", "s", "u", timeout=7)
+    timeout_kw = m.call_args[1].get("timeout")
+t("chat: timeout passed through", timeout_kw == 7)
+
+with mock.patch("urllib.request.urlopen", side_effect=KeyboardInterrupt):
+    try:
+        cla.chat("http://x/v1", "m", "s", "u")
+        ki_escaped = False
+    except KeyboardInterrupt:
+        ki_escaped = True
+t("chat: KeyboardInterrupt propagates", ki_escaped)
 
 # --- _patch_rules_lessons (--apply write path) ----------------------------------
 
@@ -337,6 +372,19 @@ with mock_ok("LESSON OUT"):
                          timeout=30, max_entries=15, apply=False))
 t("cmd_lessons live (mocked) exit 0", rc == 0)
 
+dA = tempfile.TemporaryDirectory()
+rpA = Path(dA.name) / "rules.txt"
+rpA.write_text("RULES\n", encoding="utf-8")
+with mock_ok("APPLIED DRAFT RULE"):
+    rcA = quiet(cla.cmd_lessons, sample_errors(), rpA,
+                mock.Mock(dry_run=False, model="m", base_url="http://x/v1",
+                          api_key="", max_tokens=1024, temperature=0.3,
+                          timeout=30, max_entries=15, apply=True))
+    applied = rpA.read_text(encoding="utf-8")
+t("cmd_lessons --apply writes the draft into rules",
+  rcA == 0 and "APPLIED DRAFT RULE" in applied and "LESSONS LEARNED" in applied)
+dA.cleanup()
+
 d7, lp7 = tmp_log(sample_decisions())
 with mock_ok("REVIEW OUT"):
     rc = quiet(cla.cmd_review, lp7.read_text(encoding="utf-8"), Path("x"),
@@ -386,6 +434,11 @@ with mock_url_error():
     rc = quiet(cla.cmd_check, mock.Mock(base_url="http://x/v1", model="m",
                                         api_key="", timeout=30))
 t("cmd_check failure exit 1", rc == 1)
+
+_cli = Path(__file__).resolve().parent / "check_logs_ai.py"
+r = subprocess.run([sys.executable, str(_cli), "--lessons", "--review"],
+                   capture_output=True, text=True)
+t("--lessons + --review mutually exclusive (argparse exit 2)", r.returncode == 2)
 
 # --- commit gate -----------------------------------------------------------------
 
@@ -465,5 +518,27 @@ pC.write_bytes(b"\xef\xbb\xbffeat: x (AREA: regex parser)\r\n")
 t("gate: BOM + CRLF message file handled",
   quiet(cla.cmd_check_commit, SD, pC) == 0)
 dC.cleanup()
+
+# --- --init scaffold -----------------------------------------------------------------
+
+dI = tempfile.TemporaryDirectory()
+rcI = quiet(cla.cmd_init, Path(dI.name), run_tests=False)
+created = sorted(p.name for p in Path(dI.name).iterdir())
+t("init: scaffolds all four files",
+  rcI == 0 and created == ["decisions.txt", "errors.txt", "notes.txt", "rules.txt"])
+(Path(dI.name) / "notes.txt").write_text("KEEP", encoding="utf-8")
+quiet(cla.cmd_init, Path(dI.name), run_tests=False)
+t("init: never overwrites existing files",
+  (Path(dI.name) / "notes.txt").read_text(encoding="utf-8") == "KEEP")
+(Path(dI.name) / "_test_logs_ai.py").write_text("print('OK')\n", encoding="utf-8")
+with mock.patch("subprocess.run") as mr:
+    mr.return_value.returncode = 0
+    rc_run = quiet(cla.cmd_init, Path(dI.name))
+t("init: runs the self-test suite when present", mr.call_count == 1 and rc_run == 0)
+with mock.patch("subprocess.run") as mr2:
+    mr2.return_value.returncode = 1
+    rc_fail = quiet(cla.cmd_init, Path(dI.name))
+t("init: a failing self-test fails adoption", mr2.call_count == 1 and rc_fail == 1)
+dI.cleanup()
 
 print(f"\nAll {PASS} tests passed.")

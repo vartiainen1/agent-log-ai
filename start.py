@@ -117,6 +117,7 @@ def main():
     print("  --dry-run                     print the exact prompt, send nothing")
     print("  --apply / --append            write the LLM draft into rules.txt / notes.txt")
     print("  --check-commit msg.txt        CI gate: message must name a logged decision")
+    print("  --init [DIR]                  scaffold errors/decisions/rules/notes (never overwrites)")
 
     print(f"\n{SUB}")
     print(f"LATEST SESSION NOTE (from {NOTES_FILE}):")

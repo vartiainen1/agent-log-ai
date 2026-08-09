@@ -30,6 +30,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -305,6 +306,8 @@ def chat(base_url, model, system, user, api_key="",
         return None, f"HTTP {e.code}: {e.read().decode('utf-8', 'replace')[:200]}"
     except urllib.error.URLError as e:
         return None, f"cannot reach {base_url}: {e.reason}"
+    except KeyboardInterrupt:
+        raise  # Ctrl-C must always escape - never fold it into an error string
     except Exception as e:  # JSON errors, timeouts, connection reset, ...
         return None, f"{type(e).__name__}: {e}"
     try:
@@ -349,6 +352,52 @@ def _patch_rules_lessons(rules_path, block):
     else:
         text = text.rstrip() + nl + nl + "## 7) LESSONS LEARNED (proposed drafts)" + nl + nl + body + nl
     rules_path.write_bytes(text.encode("utf-8"))
+
+
+# --- built-in scaffolds (--init) ------------------------------------------------
+# A consumer who copies only check_logs_ai.py gets working templates - they never
+# inherit this repo's own dev logs (same product rule as the sibling --init).
+
+MINIMAL_ERRORS = (
+    "=" * 80 + "\n"
+    "1) ERROR LOG (append-only; never edit an old entry)\n"
+    + "=" * 80 + "\n\n"
+    "[YYYY-MM-DD] AREA: <area this error belongs to>\n"
+    "  ERROR: <what broke - one line>\n"
+    "  CAUSE: <root cause - the interesting part>\n"
+    "  FIX: <what fixed it>\n"
+    "  STATUS: OPEN.\n\n"
+    + "=" * 80 + "\n"
+    "5) TO ADD A NEW ENTRY\n"
+    + "=" * 80 + "\n"
+    "  copy the block above, replace the fields, and append it.\n"
+)
+
+MINIMAL_DECISIONS = (
+    "=" * 80 + "\n"
+    "1) DECISIONS (append-only; never edit an old entry)\n"
+    + "=" * 80 + "\n\n"
+    "[YYYY-MM-DD HH:MM] DECISION: <what you chose>\n"
+    "  REASON: <why - the alternative you considered>\n"
+    "  STATUS: LOCKED | OPEN | REVISED\n\n"
+    + "=" * 80 + "\n"
+    "5) TO ADD A NEW ENTRY\n"
+    + "=" * 80 + "\n"
+)
+
+MINIMAL_RULES = (
+    "RULES - how the agent should behave (read before anything else)\n\n"
+    "## 1) THE FORK RULE\n"
+    "Log a decision when reversing it would cost time, or when you actively\n"
+    "considered an alternative and picked one.\n\n"
+    "## 7) LESSONS LEARNED (proposed drafts)\n"
+)
+
+MINIMAL_NOTES = (
+    "NOTES - session context\n\n"
+    "SESSION NOTE (YYYY-MM-DD): <title>\n"
+    "  - <what happened, what is deferred>\n"
+)
 
 
 # --- commands ------------------------------------------------------------------
@@ -494,6 +543,39 @@ def cmd_check_commit(text, msg_path):
     return 0
 
 
+def cmd_init(target, run_tests=True):
+    """One-command adoption: scaffold the four files this tool reads.
+
+    Existing files are never overwritten; the offline self-test suite runs at
+    the end (skipped gracefully when it is not next to the tool).
+    """
+    target = Path(target)
+    if target.exists() and not target.is_dir():
+        print(f"--init target is not a directory: {target}")
+        return 1
+    target.mkdir(parents=True, exist_ok=True)
+    print(f"--init target: {target}")
+    for name, content in (("errors.txt", MINIMAL_ERRORS),
+                          ("decisions.txt", MINIMAL_DECISIONS),
+                          ("rules.txt", MINIMAL_RULES),
+                          ("notes.txt", MINIMAL_NOTES)):
+        dest = target / name
+        if dest.exists():
+            print(f"  exists: {name} (left untouched)")
+            continue
+        dest.write_text(content, encoding="utf-8")
+        print(f"  created: {name}")
+    if run_tests:
+        suite = target / "_test_logs_ai.py"
+        if suite.exists():
+            print("running the offline self-test suite...")
+            rc = subprocess.run([sys.executable, str(suite)]).returncode
+            print(f"self-test exit: {rc}")
+            return 0 if rc == 0 else 1  # a failing suite must fail adoption
+        print("  (no _test_logs_ai.py next to the tool - skipping self-test)")
+    return 0
+
+
 def _print_prompt(title, system, user):
     print(BAR)
     print(title)
@@ -517,11 +599,15 @@ def main():
     p.add_argument("--errors", default=str(HERE / ERRORS_FILE))
     p.add_argument("--notes-file", default=str(HERE / NOTES_FILE))
     p.add_argument("--rules", default=str(HERE / RULES_FILE))
-    p.add_argument("--lessons", action="store_true", help="draft root-cause lessons from an error log")
-    p.add_argument("--review", action="store_true", help="analyze decision-log reversals")
-    p.add_argument("--notes", action="store_true", help="draft a session note from the logs")
-    p.add_argument("--check", action="store_true", help="ping the LLM endpoint")
-    p.add_argument("--check-commit", metavar="MSG_FILE", help="gate a commit message on a logged decision")
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--lessons", action="store_true", help="draft root-cause lessons from an error log")
+    g.add_argument("--review", action="store_true", help="analyze decision-log reversals")
+    g.add_argument("--notes", action="store_true", help="draft a session note from the logs")
+    g.add_argument("--check", action="store_true", help="ping the LLM endpoint")
+    g.add_argument("--check-commit", metavar="MSG_FILE", help="gate a commit message on a logged decision")
+    g.add_argument("--init", nargs="?", const=str(HERE), metavar="DIR",
+                   help="one-command adoption: scaffold errors/decisions/rules/notes in DIR "
+                        "(default: this folder)")
     p.add_argument("--apply", action="store_true", help="write the draft into rules.txt section 7")
     p.add_argument("--append", action="store_true", help="append the drafted note to notes.txt")
     p.add_argument("--dry-run", action="store_true", help="print the prompt, send nothing")
@@ -535,6 +621,9 @@ def main():
                    help="entries per cluster/topic sent to the model (cost guard)")
     p.add_argument("--timeout", type=int, default=90)
     args = p.parse_args()
+
+    if args.init:
+        return cmd_init(args.init)
 
     if args.check_commit:
         log_path = Path(args.log) if args.log else Path(args.decisions)

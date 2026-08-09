@@ -26,6 +26,14 @@
   FILES: start.py
   STATUS: LOCKED.
 
+[2026-08-09 13:30] DECISION: close the reviewer's minor gaps - --init scaffold, command mutual exclusion, Ctrl-C safety
+  REASON: the review locked 90/93/90 but named three real-but-minor code gaps:
+  no --init (one-command adoption), no mutual exclusion between commands, and
+  an implicit Ctrl-C catch. Closing them is cheap, pins the contracts with 10
+  new tests (92 total), and keeps the third repo at family parity.
+  FILES: check_logs_ai.py, _test_logs_ai.py
+  STATUS: LOCKED.
+
 ================================================================================
 5) TO ADD A NEW ENTRY
 ================================================================================
