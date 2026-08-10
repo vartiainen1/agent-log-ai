@@ -112,6 +112,24 @@ without double-encoding.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Run `python _test_logs_ai.py` —
 all tests are offline (the HTTP layer is mocked; the suite runs green with
-no network and no API key) — (101, 100% pass expected).
+no network and no API key) — (103, 100% pass expected).
 `python check_logs_ai.py` must exit 0 on the repo's own log. README test
 counts are enforced by a drift-guard CI job, so keep them in sync.
+
+## Installing with pip (optional)
+
+The single-file adoption story is unchanged - copy `check_logs_ai.py` into
+your project and you are done. The tool is *also* pip-installable with zero
+runtime dependencies:
+
+```sh
+pip install agent-log-ai
+log-ai --help
+```
+
+- The package version is derived from the git tag (setuptools-scm), which the
+  release workflow creates from CHANGELOG.md - there is no version to drift.
+- Run from the installed package, default paths (`decisions.txt`, `errors.txt`,
+  `rules.txt`, `notes.txt`) resolve against your current directory; an in-place
+  copy keeps resolving against the file's folder.
+- `--init` works identically from an installed copy (built-in templates).

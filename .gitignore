@@ -6,3 +6,8 @@ __pycache__/
 .env
 *.key
 OPENAI_API_KEY*
+
+# packaging artifacts
+dist/
+build/
+*.egg-info

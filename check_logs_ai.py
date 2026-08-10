@@ -47,6 +47,16 @@ if sys.stdin and hasattr(sys.stdin, "reconfigure"):
     sys.stdin.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = Path(__file__).resolve().parent
+
+
+def _default_base(module_dir: Path) -> Path:
+    """Directory the file defaults resolve to: the file's folder when run in
+    place (single-file adoption), or the current directory when pip-installed
+    (an installed ``log-ai`` must never write into site-packages)."""
+    return Path.cwd() if "site-packages" in module_dir.parts else module_dir
+
+
+BASE = _default_base(HERE)
 # Default log names — rename or pass --log / --decisions to point elsewhere.
 ERRORS_FILE = "errors.txt"
 DECISIONS_FILE = "decisions.txt"
@@ -647,17 +657,17 @@ def main() -> int:
         description="LLM reasoning layer over the agent-memory logs (stdlib only, local-first).")
     p.add_argument("--log", default=None,
                    help="input log path (errors.txt by default; decisions.txt for --review)")
-    p.add_argument("--decisions", default=str(HERE / DECISIONS_FILE))
-    p.add_argument("--errors", default=str(HERE / ERRORS_FILE))
-    p.add_argument("--notes-file", default=str(HERE / NOTES_FILE))
-    p.add_argument("--rules", default=str(HERE / RULES_FILE))
+    p.add_argument("--decisions", default=str(BASE / DECISIONS_FILE))
+    p.add_argument("--errors", default=str(BASE / ERRORS_FILE))
+    p.add_argument("--notes-file", default=str(BASE / NOTES_FILE))
+    p.add_argument("--rules", default=str(BASE / RULES_FILE))
     g = p.add_mutually_exclusive_group()
     g.add_argument("--lessons", action="store_true", help="draft root-cause lessons from an error log")
     g.add_argument("--review", action="store_true", help="analyze decision-log reversals")
     g.add_argument("--notes", action="store_true", help="draft a session note from the logs")
     g.add_argument("--check", action="store_true", help="ping the LLM endpoint")
     g.add_argument("--check-commit", metavar="MSG_FILE", help="gate a commit message on a logged decision")
-    g.add_argument("--init", nargs="?", const=str(HERE), metavar="DIR",
+    g.add_argument("--init", nargs="?", const=str(BASE), metavar="DIR",
                    help="one-command adoption: scaffold errors/decisions/rules/notes in DIR "
                         "(default: this folder)")
     p.add_argument("--apply", action="store_true", help="write the draft into rules.txt section 7")
