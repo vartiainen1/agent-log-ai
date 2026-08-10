@@ -14,6 +14,7 @@ import unittest.mock as mock
 import urllib.error
 from pathlib import Path
 
+import shutil as _sh
 import check_logs_ai as cla
 
 PASS = 0
@@ -540,5 +541,55 @@ with mock.patch("subprocess.run") as mr2:
     rc_fail = quiet(cla.cmd_init, Path(dI.name))
 t("init: a failing self-test fails adoption", mr2.call_count == 1 and rc_fail == 1)
 dI.cleanup()
+
+
+
+# --- L10 regression: load() must not crash on a locked/unreadable file ------
+def _locked_load_fallback():
+    import tempfile
+    d = tempfile.mkdtemp()
+    try:
+        p = Path(d) / "locked.txt"
+        p.write_text("content", encoding="utf-8")
+        with mock.patch.object(Path, "read_text",
+                               side_effect=PermissionError(13, "denied")):
+            val = cla.load(p)
+            return val == None
+    finally:
+        _sh.rmtree(d, ignore_errors=True)
+
+
+t("L10 locked/unreadable file degrades, never crashes", _locked_load_fallback())
+
+# Real msvcrt lock probe on Windows (skips elsewhere)
+def _real_lock_probe():
+    try:
+        import msvcrt
+    except ImportError:
+        return True  # non-Windows: portable test above covers it
+    import tempfile
+    d = tempfile.mkdtemp()
+    try:
+        p = Path(d) / "locked.txt"
+        p.write_text("content", encoding="utf-8")
+        fh = open(p, "r+", encoding="utf-8")
+        try:
+            try:
+                msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError:
+                return True  # lock unavailable in this environment
+            val = cla.load(p)
+            return val == None
+        finally:
+            try:
+                msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
+            except OSError:
+                pass
+            fh.close()
+    finally:
+        _sh.rmtree(d, ignore_errors=True)
+
+
+t("L10 real locked-file read degrades (Windows msvcrt)", _real_lock_probe())
 
 print(f"\nAll {PASS} tests passed.")
