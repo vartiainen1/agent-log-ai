@@ -68,6 +68,13 @@
 
 --
 
+[2026-08-10 10:00] DECISION: doc - README stale v0.1.0 backoff reference + About homepage
+  REASON: README says 'No automatic backoff in v0.1.0' but the repo is at v0.2.0; About homepage is empty while siblings link to their releases pages
+  FILES: README.md
+  STATUS: LOCKED.
+
+--
+
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>
     REASON: <why - the alternative you considered>
     STATUS: LOCKED | OPEN | REVISED
