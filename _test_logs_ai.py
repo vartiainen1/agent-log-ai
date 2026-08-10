@@ -612,4 +612,12 @@ t("entry .get() bridge covers kind-specific keys",
 t("exception vocabulary is a real hierarchy",
   issubclass(cla.ValidationError, cla.AgentLogError))
 
+# --- professional packaging: installed-mode defaults guard ---------------
+t("default base: in-place file resolves to its own folder",
+  cla._default_base(Path("/home/user/project/check_logs_ai.py"))
+  == Path("/home/user/project/check_logs_ai.py"))
+t("default base: pip-installed module resolves to the cwd",
+  cla._default_base(Path("/usr/local/lib/python3.12/site-packages/check_logs_ai.py"))
+  == Path.cwd())
+
 print(f"\nAll {PASS} tests passed.")

@@ -6,6 +6,19 @@ top of this file is the single source of truth - releases are cut from it by
 
 ## [Unreleased]
 
+### Added
+- Professional packaging: `pyproject.toml` (version derived from the git tag via
+  setuptools-scm - no drift), a global `log-ai` console script, zero runtime
+  dependencies.
+- Installed-mode defaults guard (`_default_base`): pip-installed runs resolve
+  default paths against the current directory; in-place copies keep resolving
+  against the file's folder.
+- CI `packaging` job: builds the wheel, installs it into a fresh venv, and
+  smoke-tests the console script + module import.
+- `publish.yml`: trusted publishing to PyPI, gated behind the `PUBLISH_TO_PYPI`
+  repository variable (skipped until enabled).
+
+
 ### Fixed
 - Typed entries: `parse_entries()` now returns `LogEntry` dataclasses (dict-compatible via `__getitem__`/`get`), full type hints on all functions, and an exception vocabulary (`AgentLogError` / `ValidationError`) — same behavior, same exit codes.
 - stdin reconfigured to UTF-8 on Windows: piped unicode prompts no longer double-encode (stdout-only reconfigure bug).
