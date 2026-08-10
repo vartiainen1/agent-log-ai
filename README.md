@@ -100,6 +100,10 @@ is the reasoning layer on top of the existing heuristics.
 
 **Is my log sent somewhere?** Only to the endpoint you point at. Local by
 default; cloud only if you pass `--base-url https://...` and a key.
+**I copied the tool to a scratch folder — will it read my real logs?** No —
+the `--errors` / `--decisions` / `--notes-file` defaults resolve relative to
+the script location (`HERE`), so a scratch copy reads next to itself. Point at
+your real logs from anywhere with those flags.
 
 ## Development
 
