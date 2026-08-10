@@ -7,6 +7,7 @@ top of this file is the single source of truth - releases are cut from it by
 ## [Unreleased]
 
 ### Fixed
+- Typed entries: `parse_entries()` now returns `LogEntry` dataclasses (dict-compatible via `__getitem__`/`get`), full type hints on all functions, and an exception vocabulary (`AgentLogError` / `ValidationError`) — same behavior, same exit codes.
 - stdin reconfigured to UTF-8 on Windows: piped unicode prompts no longer double-encode (stdout-only reconfigure bug).
 
 ## [0.2.0] - 2026-08-10

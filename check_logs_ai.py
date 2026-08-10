@@ -26,6 +26,8 @@ Exit codes: 0 = ok / gate passed, 1 = validation errors, API failure,
 or gate failed.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -35,7 +37,9 @@ import sys
 import urllib.error
 import urllib.request
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -63,7 +67,7 @@ SYSTEM_PROMPT = (
     "a future session can follow. Keep it concise."
 )
 
-STATUSES = ("FIXED", "PARTIAL", "OPEN", "MITIGATED", "WORKAROUND")
+STATUSES: tuple[str, ...] = ("FIXED", "PARTIAL", "OPEN", "MITIGATED", "WORKAROUND")
 ENTRY_ERR_RE = re.compile(r"^\[(?P<tag>[^\]]+)\] AREA: (?P<area>.+)$")
 ENTRY_DEC_RE = re.compile(r"^\[(?P<tag>[^\]]+)\] DECISION: (?P<title>.+)$")
 FIELD_RE = re.compile(r"^  (?P<field>[A-Z]+):\s*(?P<value>.*)$")
@@ -84,7 +88,46 @@ BAR = "=" * 80
 
 # --- text loading ------------------------------------------------------------
 
-def load(path):
+# --- error vocabulary + data model -------------------------------------------
+class AgentLogError(Exception):
+    """Base class for tooling errors (validation / usage)."""
+
+
+class ValidationError(AgentLogError):
+    """The input (log / argument) failed validation."""
+
+
+Cluster = dict[str, object]  # {"keywords": set[str], "entries": list[LogEntry]}
+
+
+@dataclass
+class LogEntry:
+    """One parsed log entry (error OR decision kind).
+
+    Dict-compatible on purpose: ``entry["tag"]`` and ``entry.get("area", "")``
+    still work (see __getitem__ / get), so tests and any external caller that
+    indexed parse_entries() results keep working unchanged. New code should
+    use attribute access (entry.tag, entry.area, entry.title).
+
+    For a decision entry, area is ""; for an error entry, title is "".
+    """
+
+    tag: str
+    area: str
+    title: str
+    line: int
+    body: list[str]
+    fields: dict[str, str]
+    block: str
+
+    def __getitem__(self, key: str) -> object:
+        return getattr(self, key)
+
+    def get(self, key: str, default: object = None) -> object:
+        return getattr(self, key, default)
+
+
+def load(path: Path) -> Optional[str]:
     """Read a file (BOM-safe, tolerant of bad bytes) or None if missing.
 
     Returns None if the file cannot be read (e.g. locked by another
@@ -105,10 +148,10 @@ def load(path):
 # self-contained single file. # Copied from the siblings - keep in sync if
 # their entry formats change.
 
-def parse_entries(text, kind):
+def parse_entries(text: str, kind: str) -> list[LogEntry]:
     """Parse an error log (kind='errors') or decision log (kind='decisions').
 
-    Returns a list of dicts: tag, area/title, fields, body, line, block.
+    Returns a list of LogEntry objects: tag, area/title, fields, body, line, block.
     """
     entry_re = ENTRY_ERR_RE if kind == "errors" else ENTRY_DEC_RE
     lines = text.splitlines()
@@ -126,28 +169,27 @@ def parse_entries(text, kind):
                 fields[fm.group("field")] = fm.group("value").strip()
             body.append(lines[j])
             j += 1
-        e = {"tag": m.group("tag"), "fields": fields,
-             "body": body, "line": i, "block": line}
         if kind == "errors":
-            e["area"] = m.group("area")
+            area, title = m.group("area"), ""
         else:
-            e["title"] = m.group("title")
-        out.append(e)
+            area, title = "", m.group("title")
+        out.append(LogEntry(tag=m.group("tag"), area=area, title=title,
+                            fields=fields, body=body, line=i, block=line))
     return out
 
 
-def status_token(status):
+def status_token(status: str) -> str:
     """First whitespace-separated token, punctuation stripped."""
     return re.split(r"\s", status.strip())[0].rstrip(".,;—–-")
 
 
-def _tokens(text):
+def _tokens(text: str) -> list[str]:
     """Significant lowercase word tokens for clustering."""
     words = re.findall(r"[a-zA-Z][a-zA-Z0-9_-]*", text.lower())
     return [w for w in words if w not in STOPWORDS and len(w) > 2]
 
 
-def cluster_entries(entries):
+def cluster_entries(entries: list[LogEntry]) -> list[Cluster]:
     """Deterministic greedy clustering by shared keywords (sibling logic).
 
     Single-link: entry A joins a cluster if it shares a keyword with any
@@ -178,7 +220,7 @@ def cluster_entries(entries):
     return clusters
 
 
-def _topic_of(e):
+def _topic_of(e: LogEntry) -> str:
     """Deterministic topic key: FILES basename, else first 3 title words."""
     files = e["fields"].get("FILES", "")
     if files:
@@ -187,7 +229,7 @@ def _topic_of(e):
     return " ".join(words[:3]) or "untitled"
 
 
-def reversal_topics(entries):
+def reversal_topics(entries: list[LogEntry]) -> dict[str, list[LogEntry]]:
     """{topic: [REVISED entries]} for topics with >= 2 reversals."""
     revs = [e for e in entries
             if status_token(e["fields"].get("STATUS", "")).upper() == "REVISED"]
@@ -197,7 +239,7 @@ def reversal_topics(entries):
     return {t: es for t, es in by.items() if len(es) >= 2}
 
 
-def current_open(entries):
+def current_open(entries: list[LogEntry]) -> list[LogEntry]:
     """OPEN decisions not superseded by a later entry."""
     superseded = {e["fields"].get("SUPERSEDES", "")
                   for e in entries if e["fields"].get("SUPERSEDES")}
@@ -206,7 +248,7 @@ def current_open(entries):
             and e["tag"] not in superseded]
 
 
-def last_session_note(text):
+def last_session_note(text: Optional[str]) -> str:
     """Most recent SESSION NOTE block from a notes file."""
     blocks = re.split(r"(?m)^(?=SESSION NOTE\s*\()", text or "")
     if len(blocks) < 2:
@@ -216,11 +258,11 @@ def last_session_note(text):
 
 # --- prompt builders (heuristics point, the LLM reasons) ---------------------
 
-def _clip(s, n=240):
+def _clip(s: str, n: int = 240) -> str:
     return s if len(s) <= n else s[: n - 1] + "…"
 
 
-def build_lessons_prompt(clusters, max_entries=15):
+def build_lessons_prompt(clusters: list[Cluster], max_entries: int = 15) -> tuple[str, str]:
     """System + user prompt for --lessons from the top clusters."""
     parts = []
     for i, c in enumerate(clusters[:3], 1):
@@ -245,7 +287,7 @@ def build_lessons_prompt(clusters, max_entries=15):
     return SYSTEM_PROMPT, user
 
 
-def build_review_prompt(topics, max_entries=10):
+def build_review_prompt(topics: dict[str, list[LogEntry]], max_entries: int = 10) -> tuple[str, str]:
     """System + user prompt for --review from the volatile topics."""
     parts = []
     for i, (topic, es) in enumerate(list(topics.items())[:3], 1):
@@ -263,7 +305,7 @@ def build_review_prompt(topics, max_entries=10):
     return SYSTEM_PROMPT, user
 
 
-def build_notes_prompt(decisions, errors, notes, max_entries=10):
+def build_notes_prompt(decisions: list[LogEntry], errors: list[LogEntry], notes: Optional[str], max_entries: int = 10) -> tuple[str, str]:
     """System + user prompt for --notes from recent state."""
     parts = []
     if decisions:
@@ -290,8 +332,8 @@ def build_notes_prompt(decisions, errors, notes, max_entries=10):
 
 # --- LLM client (stdlib only) -------------------------------------------------
 
-def chat(base_url, model, system, user, api_key="",
-         max_tokens=1024, temperature=0.3, timeout=90):
+def chat(base_url: str, model: str, system: str, user: str, api_key: str = "",
+         max_tokens: int = 1024, temperature: float = 0.3, timeout: int = 90) -> tuple[Optional[str], Optional[str]]:
     """POST {base}/chat/completions. Returns (content, error)."""
     url = base_url.rstrip("/") + "/chat/completions"
     payload = {
@@ -326,16 +368,16 @@ def chat(base_url, model, system, user, api_key="",
         return None, f"unexpected API response: {str(data)[:200]}"
 
 
-def estimate_tokens(text):
+def estimate_tokens(text: str) -> int:
     # chars/4 heuristic - approximate by design (no tokenizer in stdlib);
     # used only for the cost-guard warning, never for exact billing.
     return max(1, len(text) // 4)
 
 
-TOKEN_WARN_THRESHOLD = 2000  # cost guard: warn when the prompt estimate exceeds this
+TOKEN_WARN_THRESHOLD: int = 2000  # cost guard: warn when the prompt estimate exceeds this
 
 
-def _token_warn(tok):
+def _token_warn(tok: int) -> None:
     if tok > TOKEN_WARN_THRESHOLD:
         print(f"  WARN: prompt ~{tok} tokens (estimate chars/4) - over {TOKEN_WARN_THRESHOLD};")
         print(f"        consider --max-entries to trim before sending")
@@ -343,7 +385,7 @@ def _token_warn(tok):
 
 # --- rules.txt patching (--apply) ---------------------------------------------
 
-def _patch_rules_lessons(rules_path, block):
+def _patch_rules_lessons(rules_path: Path, block: str) -> None:
     """Write the distilled block under the LESSONS section, CRLF-safe."""
     if rules_path.exists():
         raw = rules_path.read_bytes()
@@ -412,7 +454,7 @@ MINIMAL_NOTES = (
 
 # --- commands ------------------------------------------------------------------
 
-def cmd_lessons(text, rules_path, args):
+def cmd_lessons(text: str, rules_path: Path, args: argparse.Namespace) -> int:
     entries = parse_entries(text, "errors")
     clusters = cluster_entries(entries)
     if not clusters:
@@ -441,7 +483,7 @@ def cmd_lessons(text, rules_path, args):
     return 0
 
 
-def cmd_review(text, rules_path, args):
+def cmd_review(text: str, rules_path: Path, args: argparse.Namespace) -> int:
     entries = parse_entries(text, "decisions")
     topics = reversal_topics(entries)
     if not topics:
@@ -470,7 +512,7 @@ def cmd_review(text, rules_path, args):
     return 0
 
 
-def cmd_notes(decisions_path, errors_path, notes_path, args):
+def cmd_notes(decisions_path: Path, errors_path: Path, notes_path: Path, args: argparse.Namespace) -> int:
     dec_text = load(decisions_path)
     err_text = load(errors_path)
     notes_text = load(notes_path)
@@ -508,7 +550,7 @@ def cmd_notes(decisions_path, errors_path, notes_path, args):
     return 0
 
 
-def cmd_check(args):
+def cmd_check(args: argparse.Namespace) -> int:
     """Tiny connectivity ping - one trivial completion, no real prompt."""
     print(f"checking {args.base_url} (model {args.model})...")
     content, err = chat(args.base_url, args.model,
@@ -524,7 +566,7 @@ def cmd_check(args):
     return 0
 
 
-def cmd_check_commit(text, msg_path):
+def cmd_check_commit(text: str, msg_path: Path) -> int:
     """CI gate: the commit message must name a logged decision (AREA/LOG:)."""
     if not msg_path.exists():
         print(f"missing commit-message file: {msg_path}")
@@ -553,7 +595,7 @@ def cmd_check_commit(text, msg_path):
     return 0
 
 
-def cmd_init(target, run_tests=True):
+def cmd_init(target: str, run_tests: bool = True) -> int:
     """One-command adoption: scaffold the four files this tool reads.
 
     Existing files are never overwritten; the offline self-test suite runs at
@@ -586,7 +628,7 @@ def cmd_init(target, run_tests=True):
     return 0
 
 
-def _print_prompt(title, system, user):
+def _print_prompt(title: str, system: str, user: str) -> None:
     print(BAR)
     print(title)
     print(BAR)
@@ -599,7 +641,7 @@ def _print_prompt(title, system, user):
 
 # --- CLI -----------------------------------------------------------------------
 
-def main():
+def main() -> int:
     p = argparse.ArgumentParser(
         prog="check_logs_ai.py",
         description="LLM reasoning layer over the agent-memory logs (stdlib only, local-first).")
@@ -635,33 +677,35 @@ def main():
     if args.init:
         return cmd_init(args.init)
 
-    if args.check_commit:
-        log_path = Path(args.log) if args.log else Path(args.decisions)
-        text = load(log_path) or ""
-        return cmd_check_commit(text, Path(args.check_commit))
+    try:
+        if args.check_commit:
+            log_path = Path(args.log) if args.log else Path(args.decisions)
+            text = load(log_path) or ""
+            return cmd_check_commit(text, Path(args.check_commit))
 
-    if args.lessons:
-        log_path = Path(args.log) if args.log else Path(args.errors)
-        text = load(log_path)
-        if text is None:
-            print(f"missing error log: {log_path}")
-            return 1
-        return cmd_lessons(text, Path(args.rules), args)
-    if args.review:
-        log_path = Path(args.log) if args.log else Path(args.decisions)
-        text = load(log_path)
-        if text is None:
-            print(f"missing decision log: {log_path}")
-            return 1
-        return cmd_review(text, Path(args.rules), args)
-    if args.notes:
-        return cmd_notes(Path(args.decisions), Path(args.errors),
-                         Path(args.notes_file), args)
-    if args.check:
-        return cmd_check(args)
+        if args.lessons:
+            log_path = Path(args.log) if args.log else Path(args.errors)
+            text = load(log_path)
+            if text is None:
+                raise ValidationError(f"missing error log: {log_path}")
+            return cmd_lessons(text, Path(args.rules), args)
+        if args.review:
+            log_path = Path(args.log) if args.log else Path(args.decisions)
+            text = load(log_path)
+            if text is None:
+                raise ValidationError(f"missing decision log: {log_path}")
+            return cmd_review(text, Path(args.rules), args)
+        if args.notes:
+            return cmd_notes(Path(args.decisions), Path(args.errors),
+                             Path(args.notes_file), args)
+        if args.check:
+            return cmd_check(args)
 
-    p.print_help()
-    return 0
+        p.print_help()
+        return 0
+    except AgentLogError as e:
+        print(e)
+        return 1
 
 
 if __name__ == "__main__":
