@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The version at the
 top of this file is the single source of truth - releases are cut from it by
 `.github/workflows/release.yml`.
 
+## [Unreleased]
+
+### Fixed
+- stdin reconfigured to UTF-8 on Windows: piped unicode prompts no longer double-encode (stdout-only reconfigure bug).
+
 ## [0.2.0] - 2026-08-10
 
 ### Fixed

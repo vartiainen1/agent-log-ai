@@ -75,6 +75,13 @@
 
 --
 
+[2026-08-10 10:00] DECISION: fix unicode stdin double-encoding on Windows
+  REASON: same stdout-only reconfigure class as siblings; piped unicode prompts would mojibake. Fix in check_logs_ai.py with a regression test.
+  FILES: check_logs_ai.py, _test_logs_ai.py
+  STATUS: LOCKED.
+
+--
+
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>
     REASON: <why - the alternative you considered>
     STATUS: LOCKED | OPEN | REVISED
