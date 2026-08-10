@@ -45,6 +45,11 @@
   STATUS: LOCKED.
 
 ================================================================================
+[2026-08-10 10:00] DECISION: L10 locked-file read crash - degrade to missing, never crash
+  REASON: a locked log must not kill the tool; None return matches the existing missing-file contract
+  FILES: check_logs_ai.py
+  STATUS: LOCKED.
+
 5) TO ADD A NEW ENTRY
 ================================================================================
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>

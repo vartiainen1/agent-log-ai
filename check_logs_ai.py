@@ -83,10 +83,18 @@ BAR = "=" * 80
 # --- text loading ------------------------------------------------------------
 
 def load(path):
-    """Read a file (BOM-safe, tolerant of bad bytes) or None if missing."""
+    """Read a file (BOM-safe, tolerant of bad bytes) or None if missing.
+
+    Returns None if the file cannot be read (e.g. locked by another
+    process on Windows) instead of crashing - a locked log degrades to
+    "missing" (L10).
+    """
     if not path.exists():
         return None
-    return path.read_text(encoding="utf-8-sig", errors="replace")
+    try:
+        return path.read_text(encoding="utf-8-sig", errors="replace")
+    except OSError:
+        return None
 
 
 # --- parsers ---------------------------------------------------------------
