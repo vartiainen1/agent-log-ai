@@ -82,6 +82,13 @@
 
 --
 
+[2026-08-10 10:00] DECISION: doc - FAQ documents Windows stdin unicode handling
+  REASON: same gap as siblings; add a user-facing FAQ note that piped unicode prompts are safe on Windows after the stdin fix
+  FILES: README.md
+  STATUS: LOCKED.
+
+--
+
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>
     REASON: <why - the alternative you considered>
     STATUS: LOCKED | OPEN | REVISED

@@ -104,6 +104,9 @@ default; cloud only if you pass `--base-url https://...` and a key.
 the `--errors` / `--decisions` / `--notes-file` defaults resolve relative to
 the script location (`HERE`), so a scratch copy reads next to itself. Point at
 your real logs from anywhere with those flags.
+**Does it handle unicode (café, em-dash) on Windows?** Yes — `stdin` is
+reconfigured to UTF-8 like `stdout`, so piped unicode prompts are handled
+without double-encoding.
 
 ## Development
 
