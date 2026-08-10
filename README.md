@@ -123,7 +123,7 @@ your project and you are done. The tool is *also* pip-installable with zero
 runtime dependencies:
 
 ```sh
-pip install agent-log-ai
+pip install agent-log-ai1
 log-ai --help
 ```
 

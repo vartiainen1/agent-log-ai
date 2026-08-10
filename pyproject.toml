@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agent-log-ai"
+name = "agent-log-ai1"
 dynamic = ["version"]
 description = "An LLM that reads your agent's error and decision logs and drafts root-cause lessons"
 readme = "README.md"
