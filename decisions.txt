@@ -103,3 +103,9 @@
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>
     REASON: <why - the alternative you considered>
     STATUS: LOCKED | OPEN | REVISED
+
+[2026-08-11 01:54] DECISION: rename PyPI distribution to agent-log-ai1
+  REASON: PyPI's project-name similarity guard rejects agent-log-ai as too similar to the existing agent-log package, so the trusted-publisher pending project is agent-log-ai1 (the form accepted it). The uploaded wheel name must match the pending project name exactly or the OIDC publish is rejected. GitHub repo name, the log-ai console script, and single-file adoption are unaffected - only the distribution name changes.
+  FILES: pyproject.toml, README.md, CHANGELOG.md
+  STATUS: OPEN.
+
