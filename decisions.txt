@@ -61,6 +61,13 @@
 
 5) TO ADD A NEW ENTRY
 ================================================================================
+[2026-08-10 10:00] DECISION: doc - HERE-relative default paths FAQ
+  REASON: --errors/--decisions/--notes-file default to HERE (script dir); undocumented, so scratch copies read the real logs. FAQ entry documents the behavior.
+  FILES: README.md
+  STATUS: LOCKED.
+
+--
+
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>
     REASON: <why - the alternative you considered>
     STATUS: LOCKED | OPEN | REVISED
