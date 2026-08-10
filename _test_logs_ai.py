@@ -520,6 +520,10 @@ t("gate: BOM + CRLF message file handled",
   quiet(cla.cmd_check_commit, SD, pC) == 0)
 dC.cleanup()
 
+# Windows console safety: stdin must be UTF-8 too (regression - same class
+# as the stdout-only reconfigure bug fixed in the siblings).
+t("stdin is reconfigured to utf-8", getattr(sys.stdin, "encoding", "utf-8") == "utf-8")
+
 # --- --init scaffold -----------------------------------------------------------------
 
 dI = tempfile.TemporaryDirectory()
