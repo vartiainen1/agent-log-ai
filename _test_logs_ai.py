@@ -596,4 +596,20 @@ def _real_lock_probe():
 
 t("L10 real locked-file read degrades (Windows msvcrt)", _real_lock_probe())
 
+# --- reviewer-driven: typed entries + exception vocabulary ------------------
+_dec = cla.parse_entries(SD, "decisions")
+_err = cla.parse_entries(SE, "errors")
+t("entries are LogEntry dataclasses",
+  isinstance(_dec[0], cla.LogEntry) and isinstance(_err[0], cla.LogEntry))
+t("entry attributes match the dict bridge",
+  _dec[0].tag == _dec[0]["tag"] and _dec[0].title == _dec[0]["title"]
+  and _err[0].area == _err[0]["area"] and _dec[0].line == _dec[0]["line"])
+t("entry fields/body are the same objects via the bridge",
+  _dec[0]["fields"] is _dec[0].fields and _dec[0]["body"] is _dec[0].body)
+t("entry .get() bridge covers kind-specific keys",
+  _dec[0].get("area") == "" and _err[0].get("title") == ""
+  and _dec[0].get("tag") == _dec[0]["tag"])
+t("exception vocabulary is a real hierarchy",
+  issubclass(cla.ValidationError, cla.AgentLogError))
+
 print(f"\nAll {PASS} tests passed.")

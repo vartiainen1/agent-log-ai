@@ -44,6 +44,11 @@
   FILES: CHANGELOG.md
   STATUS: LOCKED.
 
+[2026-08-10 22:27] DECISION: typed refactor - type hints and dataclasses
+  REASON: external review scored structure 8/20; typed entries + dataclass bridge keep single-file adoption intact
+  FILES: check_logs_ai.py
+  STATUS: LOCKED.
+
 ================================================================================
 [2026-08-10 10:00] DECISION: L10 locked-file read crash - degrade to missing, never crash
   REASON: a locked log must not kill the tool; None return matches the existing missing-file contract
