@@ -79,7 +79,7 @@ OPENAI_API_KEY=sk-... python check_logs_ai.py --lessons --log errors.txt --base-
   estimate (chars/4 — approximate by design) that warns before any send.
 - **Retry manually.** Local models load on the first request; if a call
   times out, run it again (later calls are warm). No automatic backoff in
-  v0.1.0 — `--timeout N` controls how long a single call waits.
+  v0.2.0 — `--timeout N` controls how long a single call waits.
 
 ## Companion tools
 
