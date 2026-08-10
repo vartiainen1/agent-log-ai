@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The version at the
 top of this file is the single source of truth - releases are cut from it by
 `.github/workflows/release.yml`.
 
-## [Unreleased]
+## [0.2.0] - 2026-08-10
 
 ### Fixed
 - L10: `load()` no longer crashes on a locked/unreadable log file (graceful `OSError` fallback; regression tests added).

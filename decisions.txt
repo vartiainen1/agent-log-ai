@@ -50,6 +50,15 @@
   FILES: check_logs_ai.py
   STATUS: LOCKED.
 
+[2026-08-10 10:00] DECISION: cut the v0.2.0 release of agent-log-ai
+  REASON: the [Unreleased] section holds the L10 locked-read fix (load() no
+  longer crashes on a Windows-locked log - graceful OSError fallback, +2
+  regression tests, 95 total). Sibling repos ship the same fix (error-log
+  PR #20, decision-log PR #17). Cutting v0.2.0 publishes the fix and keeps
+  the family release cadence in step.
+  FILES: CHANGELOG.md, check_logs_ai.py, _test_logs_ai.py
+  STATUS: LOCKED.
+
 5) TO ADD A NEW ENTRY
 ================================================================================
   [YYYY-MM-DD HH:MM] DECISION: <what you chose>
