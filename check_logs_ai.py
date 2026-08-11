@@ -653,7 +653,7 @@ def _print_prompt(title: str, system: str, user: str) -> None:
 
 def main() -> int:
     p = argparse.ArgumentParser(
-        prog="check_logs_ai.py",
+        prog="log-ai",
         description="LLM reasoning layer over the agent-memory logs (stdlib only, local-first).")
     p.add_argument("--log", default=None,
                    help="input log path (errors.txt by default; decisions.txt for --review)")

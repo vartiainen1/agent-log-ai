@@ -620,4 +620,11 @@ t("default base: pip-installed module resolves to the cwd",
   cla._default_base(Path("/usr/local/lib/python3.12/site-packages/check_logs_ai.py"))
   == Path.cwd())
 
+# --- cosmetic: --help shows the installed console-script name -------------
+_hlp = subprocess.run(
+    [sys.executable, str(Path(__file__).resolve().parent / "check_logs_ai.py"), "--help"],
+    capture_output=True, text=True)
+t("--help usage shows log-ai prog name (not check_logs_ai.py)",
+  _hlp.returncode == 0 and "usage: log-ai" in (_hlp.stdout or ""))
+
 print(f"\nAll {PASS} tests passed.")
