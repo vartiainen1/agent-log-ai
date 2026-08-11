@@ -3,7 +3,7 @@
 An LLM that reads your agent's error and decision logs and drafts the
 root-cause lessons your keyword heuristics can't.
 
-The third member of the agent-memory family. Where
+The reasoning layer of the agent-memory family. Where
 [agent-error-log](https://github.com/vartiainen1/agent-error-log) records
 what BROKE (reactive memory) and
 [agent-decision-log](https://github.com/vartiainen1/agent-decision-log)
@@ -22,7 +22,7 @@ keyword frequency and reversal counting can only point at.
 [![companion-error](https://img.shields.io/badge/companion-agent--error--log-2ea44f)](https://github.com/vartiainen1/agent-error-log)
 [![companion-decision](https://img.shields.io/badge/companion-agent--decision--log-2ea44f)](https://github.com/vartiainen1/agent-decision-log)
 
-## Why
+## Why this exists
 
 The two sibling tools turn an agent's history into *mechanical* memory:
 `--lessons` groups failures by shared keywords, `--review` counts reversals
@@ -79,15 +79,7 @@ OPENAI_API_KEY=sk-... python check_logs_ai.py --lessons --log errors.txt --base-
   estimate (chars/4 — approximate by design) that warns before any send.
 - **Retry manually.** Local models load on the first request; if a call
   times out, run it again (later calls are warm). No automatic backoff in
-  v0.2.0 — `--timeout N` controls how long a single call waits.
-
-## Companion tools
-
-| Repo | What it remembers | How it works |
-|---|---|---|
-| [agent-error-log](https://github.com/vartiainen1/agent-error-log) | what BROKE | text log + linter + git gate |
-| [agent-decision-log](https://github.com/vartiainen1/agent-decision-log) | what was CHOSEN and why | append-only decisions + currency chain |
-| **agent-log-ai (this)** | *why* it kept happening | heuristics select → LLM reasons |
+  v0.5.0 — `--timeout N` controls how long a single call waits.
 
 ## FAQ
 
@@ -116,6 +108,27 @@ no network and no API key) — (105, 100% pass expected).
 `python check_logs_ai.py` must exit 0 on the repo's own log. README test
 counts are enforced by a drift-guard CI job, so keep them in sync.
 
+## Security
+
+- The tool sends log excerpts only to the endpoint you point at — local by
+  default. **Never put credentials or secrets in your logs**; keep the repo
+  private if in doubt.
+- API keys come from the environment (`OPENAI_API_KEY` or `--api-key`),
+  never from files or the log.
+- To report a vulnerability, use the private advisory path in
+  [`SECURITY.md`](SECURITY.md) — never a public issue.
+
+## Companion tools
+
+The agent-memory family — same shape, same lifecycle verbs, four layers:
+
+| Repo | What it remembers | How it works |
+|---|---|---|
+| [agent-error-log](https://github.com/vartiainen1/agent-error-log) | what BROKE | text log + linter + git gate |
+| [agent-decision-log](https://github.com/vartiainen1/agent-decision-log) | what was CHOSEN and why | append-only decisions + currency chain |
+| **agent-log-ai (this)** | *why* it kept happening | heuristics select → LLM reasons |
+| [agent-diff-gate](https://github.com/vartiainen1/agent-diff-gate) | what must never be COMMITTED | pre-commit diff scan + gate |
+
 ## Installing with pip (optional)
 
 The single-file adoption story is unchanged - copy `check_logs_ai.py` into
@@ -123,8 +136,9 @@ your project and you are done. The tool is *also* pip-installable with zero
 runtime dependencies:
 
 ```sh
-pip install agent-log-ai1
-log-ai --help
+pip install agent-log-ai1        # the PyPI name — PyPI's name-similarity
+                                 # guard rejected the plain "agent-log-ai"
+log-ai --help                    # console script is unchanged
 ```
 
 - The package version is derived from the git tag (setuptools-scm), which the
@@ -134,6 +148,10 @@ log-ai --help
   copy keeps resolving against the file's folder.
 - `--init` works identically from an installed copy (built-in templates).
 
+## License
+
+MIT - see [LICENSE](LICENSE).
+
 ## Dogfood ledger
 
 This repo is reviewed by its own family gate. **agent-diff-gate** was run
@@ -141,7 +159,7 @@ over this repo's entire history (initial commit → `HEAD`):
 
 | | |
 |---|---|
-| Commits scanned | 29 (~2,200 diff lines) |
+| Commits scanned | 31 (~2,200 diff lines) |
 | Findings | **79** — 1 HIGH · 59 MEDIUM · 19 LOW |
 | Classes | R4 ×58 (MEDIUM) · R6 ×19 (LOW) · R2 ×1 (HIGH) · R10 ×1 (MEDIUM) |
 | Suppressed | **none** — every finding is fixed, tracked in `decisions.txt`, or documented here |
