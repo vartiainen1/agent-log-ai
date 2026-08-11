@@ -141,7 +141,7 @@ over this repo's entire history (initial commit → `HEAD`):
 
 | | |
 |---|---|
-| Commits scanned | 27 (~2,100 diff lines) |
+| Commits scanned | 29 (~2,200 diff lines) |
 | Findings | **79** — 1 HIGH · 59 MEDIUM · 19 LOW |
 | Classes | R4 ×58 (MEDIUM) · R6 ×19 (LOW) · R2 ×1 (HIGH) · R10 ×1 (MEDIUM) |
 | Suppressed | **none** — every finding is fixed, tracked in `decisions.txt`, or documented here |
