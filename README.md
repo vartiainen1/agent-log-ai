@@ -107,7 +107,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Run `python _test_logs_ai.py` —
 all tests are offline (the HTTP layer is mocked; the suite runs green with
 no network and no API key) — (105, 100% pass expected).
 `python check_logs_ai.py` must exit 0 on the repo's own log. README test
-counts are enforced by a drift-guard CI job, so keep them in sync.
+counts and family structure are enforced by drift-guard CI jobs, so keep them in sync.
 
 ## Security
 
@@ -168,7 +168,7 @@ prints the full list). The classes that appear in this repo's history:
 
 | | |
 |---|---|
-| Commits scanned | 33 (~2,300 diff lines) |
+| Commits scanned | 34 (~2,400 diff lines) |
 | Findings | **79** — 1 HIGH · 59 MEDIUM · 19 LOW |
 | Classes | R4 ×58 (MEDIUM) · R6 ×19 (LOW) · R2 ×1 (HIGH) · R10 ×1 (MEDIUM) |
 | Suppressed | **none** — every finding is fixed, tracked in `decisions.txt`, or documented here |
