@@ -148,18 +148,26 @@ log-ai --help                    # console script is unchanged
   copy keeps resolving against the file's folder.
 - `--init` works identically from an installed copy (built-in templates).
 
-## License
-
-MIT - see [LICENSE](LICENSE).
 
 ## Dogfood ledger
 
-This repo is reviewed by its own family gate. **agent-diff-gate** was run
-over this repo's entire history (initial commit → `HEAD`):
+This repo is reviewed by its own family gate — **agent-diff-gate**, a
+pre-commit diff analyzer that flags risky patterns in added code. The
+ledger below is the gate's output over this repo's entire history
+(initial commit → `HEAD`), recorded so the tool's claims are backed by
+its own findings.
+
+The gate numbers its rules R1–R14 (`python check_diff.py --list-rules`
+prints the full list). The classes that appear in this repo's history:
+
+- **R2** — silent failure: an exception swallowed without a trace
+- **R4** — duplicate logic: near-identical lines added in the same diff
+- **R6** — hardcoded URL: a non-placeholder URL in added code
+- **R10** — overly broad exception handler (a catch-all `except` clause)
 
 | | |
 |---|---|
-| Commits scanned | 31 (~2,200 diff lines) |
+| Commits scanned | 32 (~2,200 diff lines) |
 | Findings | **79** — 1 HIGH · 59 MEDIUM · 19 LOW |
 | Classes | R4 ×58 (MEDIUM) · R6 ×19 (LOW) · R2 ×1 (HIGH) · R10 ×1 (MEDIUM) |
 | Suppressed | **none** — every finding is fixed, tracked in `decisions.txt`, or documented here |
@@ -177,3 +185,7 @@ Reproduce from this repo:
 git diff $(git rev-list --max-parents=0 HEAD) HEAD \
   | python <path-to>/agent-diff-gate/check_diff.py --stdin --json
 ```
+
+## License
+
+MIT - see [LICENSE](LICENSE).
