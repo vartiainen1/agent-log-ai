@@ -153,3 +153,11 @@
   REASON: log-ai README lacked a License section, referenced v0.2.0 (current is 0.5.0), framed itself as the third member of a three-repo family, and its companion table missed the fourth repo (agent-diff-gate)
   FILES: README.md
   STATUS: LOCKED.
+
+[2026-08-11 22:17] DECISION: README ending structure - License not last, Dogfood ledger lacks lead-in
+  REASON: License was not the final README section (it sat before the
+          Dogfood ledger) and the ledger's R4/R6/R2/R10 rows appeared
+          with no lead-in; moved License last and added a lead-in
+          defining the gate and the appearing classes
+  FILES: README.md
+  STATUS: LOCKED.
