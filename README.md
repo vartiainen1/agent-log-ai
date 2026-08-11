@@ -21,6 +21,7 @@ keyword frequency and reversal counting can only point at.
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=vartiainen1.agent-log-ai&left_text=Visitors&right_color=2F80ED)](https://github.com/vartiainen1/agent-log-ai)
 [![companion-error](https://img.shields.io/badge/companion-agent--error--log-2ea44f)](https://github.com/vartiainen1/agent-error-log)
 [![companion-decision](https://img.shields.io/badge/companion-agent--decision--log-2ea44f)](https://github.com/vartiainen1/agent-decision-log)
+[![companion-diff-gate](https://img.shields.io/badge/companion-agent--diff--gate-2ea44f)](https://github.com/vartiainen1/agent-diff-gate)
 
 ## Why this exists
 
@@ -167,7 +168,7 @@ prints the full list). The classes that appear in this repo's history:
 
 | | |
 |---|---|
-| Commits scanned | 32 (~2,200 diff lines) |
+| Commits scanned | 33 (~2,300 diff lines) |
 | Findings | **79** — 1 HIGH · 59 MEDIUM · 19 LOW |
 | Classes | R4 ×58 (MEDIUM) · R6 ×19 (LOW) · R2 ×1 (HIGH) · R10 ×1 (MEDIUM) |
 | Suppressed | **none** — every finding is fixed, tracked in `decisions.txt`, or documented here |
