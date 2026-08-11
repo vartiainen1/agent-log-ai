@@ -133,3 +133,29 @@ log-ai --help
   `rules.txt`, `notes.txt`) resolve against your current directory; an in-place
   copy keeps resolving against the file's folder.
 - `--init` works identically from an installed copy (built-in templates).
+
+## Dogfood ledger
+
+This repo is reviewed by its own family gate. **agent-diff-gate** was run
+over this repo's entire history (initial commit → `HEAD`):
+
+| | |
+|---|---|
+| Commits scanned | 27 (~2,100 diff lines) |
+| Findings | **79** — 1 HIGH · 59 MEDIUM · 19 LOW |
+| Classes | R4 ×58 (MEDIUM) · R6 ×19 (LOW) · R2 ×1 (HIGH) · R10 ×1 (MEDIUM) |
+| Suppressed | **none** — every finding is fixed, tracked in `decisions.txt`, or documented here |
+
+- **R4 (MEDIUM, dominant)** — the documented test-fixture duplication
+  class; this repo's scan is dominated by it.
+- **R6 (LOW)** — URL literals in docs and fixtures (the explicit-contract
+  behavior).
+- **R2 (HIGH)** — a best-effort test-teardown swallow, deliberate by intent.
+- **R10 (MEDIUM)** — a broad exception handler, tracked in this repo's log.
+
+Reproduce from this repo:
+
+```sh
+git diff $(git rev-list --max-parents=0 HEAD) HEAD \
+  | python <path-to>/agent-diff-gate/check_diff.py --stdin --json
+```
