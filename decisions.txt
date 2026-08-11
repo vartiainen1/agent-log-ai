@@ -161,3 +161,11 @@
           defining the gate and the appearing classes
   FILES: README.md
   STATUS: LOCKED.
+
+[2026-08-11 22:37] DECISION: README consistency audit fixes - section order, companion badges, title casing
+  REASON: README audit found the companion badge row only linked
+          error-log + decision-log but not diff-gate; added the
+          companion-diff-gate badge so all four family layers are
+          cross-linked from every repo
+  FILES: README.md
+  STATUS: LOCKED.
