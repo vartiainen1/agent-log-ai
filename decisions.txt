@@ -119,5 +119,11 @@
   FILES: check_logs_ai.py, _test_logs_ai.py, README.md
   STATUS: LOCKED.
 
+[2026-08-11 02:30] DECISION: cut v0.5.0 to publish the prog-name fix to PyPI
+  REASON: v0.4.0 shipped the rename; this release carries the argparse prog fix (104 tests). PUBLISH_TO_PYPI is true and the pending publisher exists, so publishing the draft auto-uploads agent_log_ai1-0.5.0 to PyPI - the first release through the trusted-publishing pipeline.
+  FILES: CHANGELOG.md
+  STATUS: LOCKED.
+
+
 
 
