@@ -114,4 +114,10 @@
   FILES: CHANGELOG.md
   STATUS: LOCKED.
 
+[2026-08-11 02:28] DECISION: set argparse prog to log-ai so --help shows the console-script name
+  REASON: the pip-installed console script printed "usage: check_logs_ai.py" (the module file name) instead of the public console name log-ai. Cosmetic but visible to every PyPI user; argparse prog="log-ai" fixes it, pinned by a new test (104 total), shipped in the next release.
+  FILES: check_logs_ai.py, _test_logs_ai.py, README.md
+  STATUS: LOCKED.
+
+
 

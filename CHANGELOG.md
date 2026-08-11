@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The version at the
 top of this file is the single source of truth - releases are cut from it by
 `.github/workflows/release.yml`.
 
+## [Unreleased]
+
+### Changed
+- `--help` now prints `usage: log-ai` (argparse `prog="log-ai"`), matching the installed
+  console script name; pinned by a new test (104 total).
+
 ## [0.4.0] - 2026-08-11
 
 ### Changed
