@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The version at the
 top of this file is the single source of truth - releases are cut from it by
 `.github/workflows/release.yml`.
 
-## [Unreleased]
+## [0.4.0] - 2026-08-11
 
 ### Changed
 - PyPI distribution renamed to `agent-log-ai1` (PyPI's name-similarity guard rejects `agent-log-ai`; the trusted-publisher pending project is `agent-log-ai1`). GitHub repo name, the `log-ai` console script, and single-file adoption are unchanged.

@@ -109,3 +109,9 @@
   FILES: pyproject.toml, README.md, CHANGELOG.md
   STATUS: OPEN.
 
+[2026-08-11 02:02] DECISION: cut v0.4.0 to publish the agent-log-ai1 distribution to PyPI
+  REASON: the rename to agent-log-ai1 is merged on master, the pending publisher is confirmed, and PUBLISH_TO_PYPI is true on all three repos. Cutting v0.4.0 tags the renamed distribution so the trusted publish uploads agent_log_ai1-0.4.0, creating PyPI project agent-log-ai1 on first upload.
+  FILES: CHANGELOG.md
+  STATUS: LOCKED.
+
+
