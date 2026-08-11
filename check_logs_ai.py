@@ -589,7 +589,8 @@ def cmd_check_commit(text: str, msg_path: Path) -> int:
             # LAST marker on the FIRST matching line (matches the hooks'
             # greedy sed and the sibling _extract_area contract), minus a
             # trailing ')' from (AREA: x)
-            line = ln[marks[-1].end():].strip().rstrip(")").strip()
+            line = re.sub(r"\s*\(\s*#\d+\s*\)\s*$", "", ln[marks[-1].end():].strip())
+            line = line.rstrip(")").strip()
             break
     if not line:
         print("commit-gate BLOCKED: no AREA:/LOG: marker in the message")
