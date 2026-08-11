@@ -1,1 +1,0 @@
-chore: resolve the rename decision to LOCKED after the PyPI publish (AREA: rename PyPI distribution to agent-log-ai1)
