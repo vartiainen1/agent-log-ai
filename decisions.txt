@@ -124,6 +124,12 @@
   FILES: CHANGELOG.md
   STATUS: LOCKED.
 
+[2026-08-11 02:38] DECISION: remove stray scratch files _msg.txt and _commit_msg.txt from the repo
+  REASON: scratch files used for the local commit-gate check were swept into master by git add -A in earlier ship scripts (v0.4.0 cut and the resolve PR). They are not part of the tool and the repos-clean audit pin flags them; removing them restores the repo to pristine.
+  FILES: _msg.txt, _commit_msg.txt
+  STATUS: LOCKED.
+
+
 
 
 
