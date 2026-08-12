@@ -105,7 +105,7 @@ without double-encoding.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Run `python _test_logs_ai.py` —
 all tests are offline (the HTTP layer is mocked; the suite runs green with
-no network and no API key) — (108, 100% pass expected).
+no network and no API key) — (110, 100% pass expected).
 `python check_logs_ai.py` must exit 0 on the repo's own log. README test
 counts and family structure are enforced by drift-guard CI jobs, so keep them in sync.
 
