@@ -635,10 +635,16 @@ t("--help usage shows log-ai prog name (not check_logs_ai.py)",
 _ver = subprocess.run(
     [sys.executable, str(Path(__file__).resolve().parent / "check_logs_ai.py"), "--version"],
     capture_output=True, text=True)
-t("version: flag prints version and exits 0",
-  _ver.returncode == 0 and cla.VERSION in (_ver.stdout or ""))
-t("version: constant matches CHANGELOG first versioned header",
-  cla.VERSION == "0.5.0")
+t("version: flag prints module name and version",
+  _ver.returncode == 0 and "check_logs_ai.py" in (_ver.stdout or "")
+  and cla.VERSION in (_ver.stdout or ""))
+# true self-sync: read the CHANGELOG at test time (diff-gate contract)
+_cl = (Path(__file__).resolve().parent / "CHANGELOG.md").read_text(
+    encoding="utf-8")
+_first_versioned = next(
+    (ln for ln in _cl.splitlines() if ln.startswith("## [") and "Unreleased" not in ln), None)
+t("version: CHANGELOG first versioned header matches VERSION",
+  _first_versioned is not None and _first_versioned[4:].split("]", 1)[0] == cla.VERSION)
 t("version: constant is a semantic version triple",
   len(cla.VERSION.split(".")) == 3)
 
