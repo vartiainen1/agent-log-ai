@@ -7,6 +7,9 @@ top of this file is the single source of truth - releases are cut from it by
 ## [Unreleased]
 
 ### Added
+- README Verification section documents the real battery record
+  (18,120 installed-binary executions across four rounds, 0 failed).
+
 - `--version` flag prints the tool version and exits 0 (family finding #1
   closed - all four family tools now support it).
 
