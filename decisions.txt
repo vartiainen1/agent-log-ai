@@ -55,6 +55,11 @@
   FILES: pyproject.toml, check_logs_ai.py, ci.yml, publish.yml, README.md, CHANGELOG.md
   STATUS: LOCKED
 
+[2026-08-12 02:46] DECISION: add --version flag to log-ai (family finding #1)
+  REASON: the 500-test run found log-ai rejects --version with rc 2; all four family tools should report their version
+  FILES: check_logs_ai.py
+  STATUS: LOCKED.
+
 ================================================================================
 [2026-08-10 10:00] DECISION: L10 locked-file read crash - degrade to missing, never crash
   REASON: a locked log must not kill the tool; None return matches the existing missing-file contract

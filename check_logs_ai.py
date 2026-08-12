@@ -27,6 +27,7 @@ or gate failed.
 """
 
 from __future__ import annotations
+VERSION = "0.5.0"
 
 import argparse
 import json
@@ -683,7 +684,12 @@ def main() -> int:
     p.add_argument("--max-entries", type=int, default=15,
                    help="entries per cluster/topic sent to the model (cost guard)")
     p.add_argument("--timeout", type=int, default=90)
+    p.add_argument("--version", action="store_true", help="print version and exit")
     args = p.parse_args()
+
+    if args.version:
+        print(f"check_logs_ai.py {VERSION}")
+        return 0
 
     if args.init:
         return cmd_init(args.init)
