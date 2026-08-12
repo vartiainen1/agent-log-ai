@@ -37,6 +37,9 @@ top of this file is the single source of truth - releases are cut from it by
 
 
 ### Fixed
+- CI commit-message gate now gates the authored PR tip (HEAD^2)
+  on GitHub merge commits, so master stops showing a red X on
+  `gh pr merge --merge` merges (family finding, all four repos)
 - Typed entries: `parse_entries()` now returns `LogEntry` dataclasses (dict-compatible via `__getitem__`/`get`), full type hints on all functions, and an exception vocabulary (`AgentLogError` / `ValidationError`) — same behavior, same exit codes.
 - stdin reconfigured to UTF-8 on Windows: piped unicode prompts no longer double-encode (stdout-only reconfigure bug).
 
