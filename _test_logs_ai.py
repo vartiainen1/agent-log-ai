@@ -630,4 +630,16 @@ _hlp = subprocess.run(
 t("--help usage shows log-ai prog name (not check_logs_ai.py)",
   _hlp.returncode == 0 and "usage: log-ai" in (_hlp.stdout or ""))
 
+
+# --- --version contract (family finding #1) --------------------------------
+_ver = subprocess.run(
+    [sys.executable, str(Path(__file__).resolve().parent / "check_logs_ai.py"), "--version"],
+    capture_output=True, text=True)
+t("version: flag prints version and exits 0",
+  _ver.returncode == 0 and cla.VERSION in (_ver.stdout or ""))
+t("version: constant matches CHANGELOG first versioned header",
+  cla.VERSION == "0.5.0")
+t("version: constant is a semantic version triple",
+  len(cla.VERSION.split(".")) == 3)
+
 print(f"\nAll {PASS} tests passed.")
