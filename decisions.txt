@@ -199,3 +199,13 @@
           the proof is on the page for adopters.
   FILES: README.md, CHANGELOG.md
   STATUS: LOCKED.
+
+[2026-08-12 21:30] DECISION: commit the AI-distilled lesson drafts in rules.txt section 7 (pending human-confirm)
+  REASON: the 3 CLUSTER drafts produced by --lessons --apply (the EVIDENCE-017
+          source, already imported into agent-memory as lesson memories) sat
+          uncommitted, flagging the workspace boot's repos-clean pin. They are
+          legitimate pending knowledge - human-confirm before promotion - so
+          they ship as drafts through the normal flow, and the audit can
+          declare the ecosystem clean again.
+  FILES: rules.txt, decisions.txt
+  STATUS: LOCKED.

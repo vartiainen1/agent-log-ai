@@ -20,6 +20,21 @@ RULES OF ENGAGEMENT
    Dry-run before you send. Never commit an API key. Local-first by default.
 
 ## 7) LESSONS LEARNED (proposed drafts)
-========
-   Drafts land here via `--apply`. A human confirms them before they are
-   promoted to the numbered rules above.
+
+Distilled by check_logs_ai.py - human-confirm before promoting to the numbered rules above.
+
+**CLUSTER 1 — ROOT CAUSE:** Inconsistent handling of Unicode input/output streams on Windows, combined with lack of user-facing documentation for a fix, led to repeated failures in CLI behavior and documentation alignment.
+
+**CLUSTER 1 — RULE:** *Always ensure that any change affecting stdin/stdout encoding is paired with corresponding updates to user-facing docs (FAQs, README) and regression tests covering the affected platform (e.g., Windows piped input).*
+
+---
+
+**CLUSTER 2 — ROOT CAUSE:** Lack of automated enforcement for README style and commit message parsing logic led to drift and CI failures due to manual oversight and inconsistent handling of GitHub-specific commit formats.
+
+**CLUSTER 2 — RULE:** *Any commit message or README formatting rule must be enforced by an automated check (e.g., script, pre-commit hook) rather than relying on manual audits or one-time fixes.*
+
+---
+
+**CLUSTER 3 — ROOT CAUSE:** Memory-intensive image processing and non-interactive input handling were not designed with scalability or robustness in mind, leading to timeouts and unexpected aborts during piped input.
+
+**CLUSTER 3 — RULE:** *All interactive scaffolding tools must support a non-interactive mode for scripting use cases, and all memory-heavy operations (e.g., image processing) must be optimized for streaming or progressive handling to avoid timeouts.*
